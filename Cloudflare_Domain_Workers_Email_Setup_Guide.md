@@ -1,7 +1,7 @@
 # Cloudflare Domain, Workers Hosting, DNS & Email
 
 **A complete theoretical setup and operations guide**  
-**Edition:** 1.0  |  **Documentation reviewed:** 10 November 2026  |  **Scope:** New domain, static site, staging, production, HTTPS, DNS, inbound email, optional outbound email
+**Edition:** 1.1  |  **Documentation reviewed:** 10 November 2026  |  **Scope:** New domain, static site, staging, production, HTTPS, DNS, inbound email, optional outbound email
 
 > **Important:** This is a reference procedure, not a record of a live deployment. `example.com` is the reserved illustrative domain used throughout. Replace it, the Worker names, and example inboxes with your own values. Dashboard labels and account entitlements can change; confirm each setting before saving it. No domain purchase, DNS change, deployment, payment, or email delivery test was performed for this document.
 
@@ -69,14 +69,14 @@ Cloudflare Workers Static Assets is not PHP shared hosting, a traditional cPanel
 
 ```mermaid
 flowchart TB
-    R[Domain registrar\nCloudflare or third party] --> N[Cloudflare authoritative DNS]
+    R["Domain registrar<br/>Cloudflare or third party"] --> N[Cloudflare authoritative DNS]
     V[Website visitor] --> N
     N --> C{Requested hostname}
-    C -->|www.example.com| P[Production Worker\nStatic assets]
-    C -->|example.com| D[Proxied placeholder +\nRedirect Rule]
+    C -->|www.example.com| P["Production Worker<br/>Static assets"]
+    C -->|example.com| D["Proxied placeholder +<br/>Redirect Rule"]
     D --> P
-    C -->|staging.example.com| A[Cloudflare Access\nAuthentication]
-    A --> S[Staging Worker\nStatic assets]
+    C -->|staging.example.com| A["Cloudflare Access<br/>Authentication"]
+    A --> S["Staging Worker<br/>Static assets"]
     M[Sender emails user@example.com] --> X[Cloudflare incoming MX]
     X --> F[Email Routing rules]
     F --> I[Verified external inbox]
@@ -284,13 +284,15 @@ A `workers.dev` address is generally public by default. To give staging a dedica
 
 ### 7.2 Restrict staging access
 
-1. Open **Workers & Pages → example-staging → Access**.
-2. Enable Cloudflare Zero Trust/Access if not already configured.
-3. Create an access policy allowing only your approved test users or identities.
-4. Prefer **Worker-level protection**, which covers the Worker's associated domains and preview URLs, so a `workers.dev` URL cannot bypass a hostname-only policy.
-5. Test access from an approved user **and** an unapproved/incognito session.
+1. Confirm Cloudflare **Zero Trust** is enabled for the account and that you have permissions to manage Workers and Access applications.
+2. Open **Workers & Pages → example-staging → Access**.
+3. Select **Protect this Worker behind Access**.
+4. Choose **All traffic** (not **Previews only**). Previews only does not cover the staging Worker's production URL or its `staging.example.com` Custom Domain.
+5. Under **Authentication policy**, permit only your approved testers or identities; review the session duration.
+6. Select **Apply Access** and confirm that the policy is enabled for **example-staging** only. The production Worker should remain publicly available.
+7. Test an approved identity and an unauthorized/incognito session against **both** the Worker's `workers.dev` hostname and `staging.example.com` (if configured), including any preview URLs.
 
-If Worker-level Access is not available in the account or the design uses other access paths, review every hostname/route for bypasses. [CF-06]
+Worker-level **All traffic** protection covers the Worker's routes, Custom Domains, `workers.dev` hostname, and previews. It does not currently support WebSocket upgrades; if your staging application uses WebSockets, use appropriate hostname-based Access policies and test every reachable entry point instead. [CF-06]
 
 ### 7.3 Staging acceptance gate
 
@@ -381,7 +383,7 @@ For a Cloudflare Registrar domain, use the registrar's **Manage Domains → Conf
 
 ```mermaid
 flowchart LR
-    E[External sender] --> MX[Cloudflare MX records\nexample.com]
+    E[External sender] --> MX["Cloudflare MX records<br/>example.com"]
     MX --> R[Email Routing rules]
     R -->|support@| IN[Verified existing mailbox]
     R -->|contact@| IN
@@ -475,7 +477,7 @@ Only after legitimate senders are authenticating and aligning should you conside
 
 ### 13.1 Option A — Cloudflare Email Sending
 
-Cloudflare Email Sending is distinct from Email Routing. It can send application/transactional messages via Workers, API, or authenticated SMTP. The documented SMTP endpoint is `smtp.mx.cloudflare.net` on port `465` with implicit TLS, username `api_token`, and an API token with the required Email Sending permission. Do not embed that token in public JavaScript or downloadable website files. Sending to arbitrary recipients requires the Workers Paid plan under Cloudflare's documented pricing. Check feature availability and terms before implementation. [CF-15]
+Cloudflare Email Sending is a separately onboarded service (documented as beta in the current Email Service interface). It is distinct from Email Routing. It can send application/transactional messages via Workers, API, or authenticated SMTP. The documented SMTP endpoint is `smtp.mx.cloudflare.net` on port `465` with implicit TLS, username `api_token`, and an API token with the required Email Sending permission. Do not embed that token in public JavaScript or downloadable website files. Sending to arbitrary recipients requires the Workers Paid plan under Cloudflare's documented pricing. Check feature availability and terms before implementation. [CF-15]
 
 To onboard: open **Compute → Email Service → Email Sending → Onboard Domain**, select the domain, approve the sending-specific authentication and bounce-processing DNS records, and verify them in **Email Sending → Settings**. Cloudflare uses separate `cf-bounce` MX/SPF and `cf-bounce._domainkey` DKIM names; these **do not replace** the apex Email Routing MX records. The sending service is **not a webmail inbox**.
 
@@ -758,10 +760,17 @@ A site without traditional hosting still needs domain renewal, content updates, 
 - **[CF-13]** [Email Service domain DNS records](https://developers.cloudflare.com/email-service/configuration/domains/) and [authentication](https://developers.cloudflare.com/email-service/concepts/email-authentication/)
 - **[CF-14]** [Email security records and DMARC](https://developers.cloudflare.com/dmarc-management/security-records/)
 - **[CF-15]** [Email Sending and SMTP reference](https://developers.cloudflare.com/email-service/api/send-emails/smtp/)
-- **[CF-16]** [Worker rollback](https://developers.cloudflare.com/workers/configuration/versions-and-deployments/rollbacks/)
+- **[CF-16]** [Worker rollback](https://developers.cloudflare.com/workers/versions-and-deployments/rollbacks/)
 - **[CF-17]** [Static Assets billing and limitations](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/)
 - **[CF-18]** [Email Service pricing](https://developers.cloudflare.com/email-service/platform/pricing/)
 
+### 20.3 Revision history
+
+| Edition | Date | Change |
+|---|---|---|
+| 1.0 | 10 November 2026 | Initial theoretical reference guide. |
+| 1.1 | 10 November 2026 | Clarified staging Access coverage and correct selection, normalized Mermaid line breaks, noted Email Sending beta, and updated the Worker rollback reference URL. |
+
 ---
 
-**Document control:** Version 1.0 · 10 November 2026 · Theoretical reference only. Technical platform steps were cross-checked against Cloudflare's public documentation. No account access, deployment, actual DNS, mail routing, or native OS test was performed. Always confirm account-specific generated values and current Cloudflare interface labels before making changes.
+**Document control:** Version 1.1 · 10 November 2026 · Theoretical reference only. Technical platform steps were cross-checked against Cloudflare's public documentation. No account access, deployment, actual DNS, mail routing, or native OS test was performed. Always confirm account-specific generated values and current Cloudflare interface labels before making changes.

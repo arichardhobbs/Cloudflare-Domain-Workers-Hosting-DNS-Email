@@ -2,7 +2,7 @@
 
 **A complete theoretical setup and operations guide** for purchasing or connecting a domain, publishing a static website with Cloudflare Workers, configuring DNS and HTTPS, separating staging from production, and setting up custom-domain email.
 
-**Edition:** 1.0  
+**Edition:** 1.1  
 **Documentation reviewed:** 10 November 2026  
 **Project type:** Documentation / reference guide — not a deployed application
 
@@ -22,7 +22,7 @@ The Markdown document is the editable reference. The PDF presents the same guide
 | **Domain registration** | Buying from Cloudflare Registrar or a third-party registrar; registration, nameservers, and domain activation |
 | **Cloudflare DNS** | Authoritative DNS, record types, proxy status, DNSSEC, and avoiding conflicting entries |
 | **Website hosting** | Workers Static Assets, deployment prerequisites, Wrangler, and Cloudflare Drop as an alternative |
-| **Environments** | Independent staging and production Workers, optional staging subdomain, and access protection |
+| **Environments** | Independent staging and production Workers, optional staging subdomain, and Worker-level **All traffic** Access protection |
 | **Production domain** | Worker Custom Domain for `www.example.com`, apex redirect, and HTTPS |
 | **Email receiving** | Cloudflare Email Routing, verified destination mailbox, and four sample email addresses |
 | **Email authentication** | SPF, DKIM, DMARC, MX, and DNS ownership responsibilities |
@@ -62,7 +62,7 @@ flowchart LR
     H --> I["Run acceptance checks"]
 ```
 
-For routine releases, make changes in staging, test them, deploy the approved build to production, verify the live domain, and retain a known-good version for rollback.
+For routine releases, make changes in staging, test them, deploy the approved build to production, verify the live domain, and retain a known-good version for rollback. To protect the entire staging Worker, select **All traffic** in its Access tab rather than **Previews only**.
 
 ## DNS configuration at a glance
 
@@ -121,6 +121,10 @@ Upload all three files into the **repository root** to keep the relative links i
 - Keep API tokens, account credentials, and private keys out of this repository and out of browser-delivered website assets.
 - The Cloudflare Free plan can support the reference static-site architecture, but domain registration, optional services, and usage beyond plan limits may incur charges.
 - Dashboard labels, feature availability, limits, and service instructions may change. Verify against official documentation before making production changes.
+
+## Revision notes
+
+**Edition 1.1 (10 November 2026):** Clarifies how to restrict staging Worker access across all hostnames, normalizes Mermaid line breaks in the full Markdown guide, notes the status of Email Sending, and updates the canonical Cloudflare rollback documentation link. No live configuration has been performed.
 
 ## Maintain the documentation
 
